@@ -10,7 +10,9 @@ define(function (require) {
         rows        = 5,
         cols        = 11,
         count       = rows * cols,
-        spawned     = 0;
+        spawned     = 0,
+        canFire     = true,
+        bulletSpeed = 8;
 
     //--------------------------------------------------------------------------
     //
@@ -33,6 +35,55 @@ define(function (require) {
         hero:   [0, 3]
     });
 
+    Crafty.c('Hero', {
+        init: function () {
+            this.requires('2D, DOM, Multiway, Collision, hero')
+                .attr({
+                    x: worldWidth / 2 - tileSize / 2,
+                    y: tileSize * 15
+                })
+                .multiway(4, {
+                    LEFT_ARROW: 180,
+                    RIGHT_ARROW: 0
+                })
+                .bind('Moved', function (from) {
+                    if ((from.x + tileSize) >= worldWidth) {
+                        this.attr({x: from.x - 1});
+                    }
+                    if (from.x <= 0) {
+                        this.attr({x: 1});
+                    }
+                })
+                .bind('KeyDown', function (event) {
+                    if (event.key === Crafty.keys.SPACE && canFire) {
+                        canFire = false;
+                        Crafty.e('Bullet, 2D, DOM, Color, Collision')
+                            .color('rgb(0,255,0)')
+                            .attr({
+                                x: this.x + tileSize / 2 - 1,
+                                y: this.y - 18,
+                                w: 2,
+                                h: 16
+                            })
+                            .bind('EnterFrame', function () {
+                                if (this.y > 0) {
+                                    this.y -= bulletSpeed;
+                                } else {
+                                    this.destroy();
+                                    canFire = true;
+                                }
+                            })
+                            .onHit('Alien', function (hits) {
+                                hits[0].obj.destroy();
+                                this.destroy();
+                                canFire = true;
+                            });
+                    }
+                });
+            return this;
+        }
+    });
+
     //--------------------------------------------------------------------------
     //
     // World
@@ -40,26 +91,7 @@ define(function (require) {
     //--------------------------------------------------------------------------
 
     function spawnHero() {
-        Crafty.e('2D, DOM, Multiway, Collision, hero')
-            .attr({
-                x: 1,
-                y: tileSize * 15
-            })
-            .multiway(4, {
-                LEFT_ARROW: 180,
-                RIGHT_ARROW: 0
-            })
-            .bind('Moved', function (from) {
-                if ((from.x + tileSize) >= worldWidth) {
-                    this.attr({x: from.x - 1});
-                }
-                if (from.x <=0) {
-                    this.attr({x: 1});
-                }
-            })
-            .onHit('fire', function () {
-                this.destroy();
-            });
+        Crafty.e('Hero');
     }
 
     function spawnAlien(i, j) {
@@ -81,11 +113,10 @@ define(function (require) {
             alien = 'alien3';
         }
 
-        Crafty.e('2D, DOM, SpriteAnimation, enemy, ' + alien)
+        Crafty.e('2D, DOM, SpriteAnimation, Alien, Collision, ' + alien)
             .attr({
                 x: i * tileSize + offsetX,
-                y: j * tileSize + offsetY,
-                z: 2
+                y: j * tileSize + offsetY
             });
 
         spawned += 1;
