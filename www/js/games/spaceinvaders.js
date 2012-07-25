@@ -11,8 +11,11 @@ define(function (require) {
         cols        = 11,
         count       = rows * cols,
         spawned     = 0,
+        alive       = 0,
         canFire     = true,
-        bulletSpeed = 8;
+        bulletSpeed = 8,
+        hero        = null,
+        spriteImg   = '/img/enemies-and-hero.png';
 
     //--------------------------------------------------------------------------
     //
@@ -28,7 +31,7 @@ define(function (require) {
     //
     //--------------------------------------------------------------------------
 
-    Crafty.sprite(tileSize, '/img/enemies-and-hero.png', {
+    Crafty.sprite(tileSize, spriteImg, {
         alien1: [0, 0],
         alien2: [0, 1],
         alien3: [0, 2],
@@ -49,11 +52,15 @@ define(function (require) {
             return this;
         },
         kill: function () {
+            alive -= 1;
             this
                 .animate('explode', 1)
                 .timeout(function () {
                     this.destroy();
                 }, 250);
+            if (alive === 0) {
+                restart();
+            }
             return this;
         }
     });
@@ -114,7 +121,7 @@ define(function (require) {
     //--------------------------------------------------------------------------
 
     function spawnHero() {
-        Crafty.e('Hero');
+        hero = Crafty.e('Hero');
     }
 
     function spawnAlien(i, j) {
@@ -161,6 +168,12 @@ define(function (require) {
 
 
     function restart() {
+        alive = count;
+        spawned = 0;
+        if (hero) {
+            hero.destroy();
+            hero = null;
+        }
         spawnAlien(0, 4);
     }
 
@@ -175,7 +188,15 @@ define(function (require) {
     //--------------------------------------------------------------------------
 
     Crafty.scene('loading', function () {
-        Crafty.scene('main');
+        Crafty.load([spriteImg], function () {
+            Crafty.scene('main');
+        });
+        Crafty.e('2D, DOM, Text')
+            .attr({w: 640, h: 480, x: 5, y: 5})
+            .text('loading...')
+            .css('color', 'white')
+            .css('font-family', 'monospace');
+        Crafty.background('black');
     });
 
     Crafty.scene('main', function () {
