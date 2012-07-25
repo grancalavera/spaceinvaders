@@ -35,6 +35,29 @@ define(function (require) {
         hero:   [0, 3]
     });
 
+    Crafty.c('Alien', {
+        init: function () {
+            this.requires('2D, DOM, SpriteAnimation, Alien, Collision');
+            return this;
+
+        },
+        Alien: function () {
+            this
+                .animate('explode', 2, 0, 2)
+                .animate('even', 0, 0, 0)
+                .animate('odd', 1, 0, 1);
+            return this;
+        },
+        kill: function () {
+            this
+                .animate('explode', 1)
+                .timeout(function () {
+                    this.destroy();
+                }, 250);
+            return this;
+        }
+    });
+
     Crafty.c('Hero', {
         init: function () {
             this.requires('2D, DOM, Multiway, Collision, hero')
@@ -74,7 +97,7 @@ define(function (require) {
                                 }
                             })
                             .onHit('Alien', function (hits) {
-                                hits[0].obj.destroy();
+                                hits[0].obj.kill();
                                 this.destroy();
                                 canFire = true;
                             });
@@ -113,11 +136,11 @@ define(function (require) {
             alien = 'alien3';
         }
 
-        Crafty.e('2D, DOM, SpriteAnimation, Alien, Collision, ' + alien)
+        Crafty.e('Alien, ' + alien)
             .attr({
                 x: i * tileSize + offsetX,
                 y: j * tileSize + offsetY
-            });
+            }).Alien();
 
         spawned += 1;
 
