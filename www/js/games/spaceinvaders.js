@@ -1,21 +1,36 @@
 define(function (require) {
     'use strict';
 
-    var Crafty = require('crafty'),
-        worldWidth  = 480,
-        worldHeight = 640,
-        tileSize    = 32,
-        offsetX     = 2 * tileSize,
-        offsetY     = 4 * tileSize,
-        rows        = 5,
-        cols        = 11,
-        count       = rows * cols,
-        spawned     = 0,
-        alive       = 0,
-        canFire     = true,
-        bulletSpeed = 8,
-        hero        = null,
-        spriteImg   = '/img/enemies-and-hero.png';
+    var Crafty          = require('crafty'),
+        worldWidth      = 480,
+        worldHeight     = 640,
+        tileSize        = 32,
+        offsetX         = 2 * tileSize,
+        offsetY         = 4 * tileSize,
+        rows            = 5,
+        cols            = 11,
+        count           = rows * cols,
+        spawned         = 0,
+        alive           = 0,
+        canFire         = true,
+        bulletSpeed     = 8,
+        hero            = null,
+        spriteImg       = '/img/enemies-and-hero.png',
+        leftBarrier     = null,
+        rightBarrier    = null,
+        lastTick        = null,
+        elapsed         = 0,
+        interval        = 250,
+        stepSize        = tileSize / 4,
+        direction       = 1,
+        aliens          = null,
+        sweepRow        = 4,
+        stepDown        = 0;
+
+    require('games/spaceinvaders/characters');
+
+    Crafty.init(worldWidth, worldHeight);
+    Crafty.canvas.init();
 
     //--------------------------------------------------------------------------
     //
@@ -23,13 +38,11 @@ define(function (require) {
     //
     //--------------------------------------------------------------------------
 
-    Crafty.init(worldWidth, worldHeight);
-
-    //--------------------------------------------------------------------------
+    //----------------------------------
     //
-    // Characters
+    // Sprites
     //
-    //--------------------------------------------------------------------------
+    //----------------------------------
 
     Crafty.sprite(tileSize, spriteImg, {
         alien1: [0, 0],
@@ -38,30 +51,12 @@ define(function (require) {
         hero:   [0, 3]
     });
 
-    Crafty.c('Alien', {
-        init: function () {
-            this.requires('2D, Canvas, SpriteAnimation, Alien, Collision');
-            return this;
+    //----------------------------------
+    //
+    // Characters
+    //
+    //----------------------------------
 
-        },
-        Alien: function () {
-            this
-                .animate('explode', 2, 0, 2);
-            return this;
-        },
-        kill: function () {
-            alive -= 1;
-            this
-                .animate('explode', 1)
-                .timeout(function () {
-                    this.destroy();
-                }, 250);
-            if (alive === 0) {
-                restart();
-            }
-            return this;
-        }
-    });
 
     Crafty.c('Hero', {
         init: function () {
@@ -118,12 +113,11 @@ define(function (require) {
     //
     //--------------------------------------------------------------------------
 
-    function spawnHero() {
-        hero = Crafty.e('Hero');
-    }
-
-    function spawnAlien(i, j) {
-        var alien, anim, row, start, end, delay = 0, half;
+    function spawnAlien(i, j, callback) {
+        var alien, anim, row, start, end, delay = 0, half, spawn;
+        if (!aliens[j]) {
+            aliens[j] = [];
+        }
 
         switch (j) {
         case 0:
@@ -145,27 +139,14 @@ define(function (require) {
             row = 2;
         }
 
-        half = j % 2 === 0 ? 5 : 6;
-        if (i < half) {
-            start = 0;
-            end = 1;
-        } else {
-            start = 1;
-            end = 0;
-            delay = 500;
-        }
-
-        Crafty.e('Alien, ' + alien)
-            .Alien()
+        spawn = Crafty.e('Alien, ' + alien)
+            .Alien(row)
             .attr({
                 x: i * tileSize + offsetX,
                 y: j * tileSize + offsetY
-            })
-            .animate('flap', start, row, end)
-            .timeout(function () {
-                this.animate('flap', 100, -1);
-            }, delay);
+            });
 
+        aliens[j][i] = spawn;
         spawned += 1;
 
         if (spawned < count) {
@@ -176,26 +157,41 @@ define(function (require) {
                 j -= 1;
             }
             setTimeout(function () {
-                spawnAlien(i, j);
-            }, 10);
+                spawnAlien(i, j, callback);
+            }, 30);
         } else {
-            spawnHero();
+            callback();
         }
     }
 
+    function createBarrier() {
+        return Crafty.e('2D, Canvas, Color, Collision')
+            .color(Crafty.toRGB('#FFFFFF'))
+            .attr({
+                w: 16,
+                h: worldHeight
+            });
+            // .onHit('Alien', function (hits) {
+            //     direction *= -1;
+            //     stepDown = 5;
+            // });
+    }
 
-    function restart() {
-        alive = count;
+    function start() {
+        console.log('start!');
+    }
+
+    function reset() {
+        aliens = [];
         spawned = 0;
-        if (hero) {
-            hero.destroy();
-            hero = null;
-        }
-        spawnAlien(0, 4);
+        spawnAlien(0, 4, start);
     }
+
 
     function generateWorld() {
-        restart();
+        // leftBarrier = createBarrier();
+        // rightBarrier = createBarrier().attr({x: worldWidth - 16});
+        reset();
     }
 
     //--------------------------------------------------------------------------
@@ -214,9 +210,42 @@ define(function (require) {
         Crafty.background('black');
     });
 
-    Crafty.scene('main', function () {
+    var game = Crafty.scene('main', function () {
         generateWorld();
         Crafty.background('black');
+        this.bind('Click', function () {
+            console.log('click!');
+        });
+        // lastTick = Date.now();
+        // this.bind('EnterFrame', function () {
+        //     var now = Date.now(), elapsed = now - lastTick;
+        //     if (elapsed >= interval) {
+        //         var row = aliens[sweepRow], i =0, l = row.length, alien, x, y;
+        //         for (; i < l; i += 1) {
+        //             alien = row[i];
+        //             x = alien.x;
+        //             y = alien.y;
+        //             if (stepDown < 0) {
+        //                 x = x + (tileSize * direction);
+        //                 y = y - tileSize;
+        //             } else {
+        //                 x = x + (stepSize * direction);
+        //             }
+        //             alien.toggle();
+        //             alien.attr({x: x, y: y});
+        //         }
+
+        //         if (stepDown < 0) {
+        //             stepDown -= 1;
+        //         }
+        //         if (sweepRow === 0) {
+        //             sweepRow = 4;
+        //         } else {
+        //             sweepRow -= 1;
+        //         }
+        //         lastTick = now;
+        //     }
+        // });
     });
 
     //--------------------------------------------------------------------------
