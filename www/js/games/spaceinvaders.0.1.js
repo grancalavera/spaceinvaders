@@ -164,12 +164,16 @@ define(function (require) {
                 break;
             }
 
-            this.aliens[row][col] = Crafty.e('Alien, ' + alien)
+            alien = Crafty.e('Alien, ' + alien)
                 .Alien(row, col, spriteRow)
                 .attr({
                     x: col * this.ts + this.off.x,
                     y: row * this.ts + this.off.y
                 });
+            if (row % 2) {
+                alien.toggle();
+            }
+            this.aliens[row][col] = alien;
 
             if (this.getAliveCount() < this.cloudSize) {
                 if (col < this.cols - 1) {
@@ -224,7 +228,6 @@ define(function (require) {
                 if (this.edges.r.x + this.stepSize < this.bounds.r) {
                     this.move(lastRow);
                 } else {
-                    console.log('hit on the the right side');
                     this.dir *= -1;
                     this.stepDown(lastRow);
                 }
@@ -232,7 +235,6 @@ define(function (require) {
                 if (this.edges.l.x - this.stepSize > this.bounds.l) {
                     this.move(lastRow);
                 } else {
-                    console.log('hit on the the left side');
                     this.dir *= -1;
                     this.stepDown(lastRow);
                 }
@@ -245,6 +247,7 @@ define(function (require) {
             _.each(alienRow, function (alien) {
                 x = alien.x + this.stepSize * this.dir;
                 alien.attr({x: x});
+                alien.toggle();
             }, this);
 
             row -= 1;
