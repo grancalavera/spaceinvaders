@@ -240,6 +240,7 @@ define(function (require) {
                 }
             }
         },
+        // I think cloud toggles in turns, even, odd and so on.
         toggle: function () {
             _.each(this.aliens, function (row) {
                 _.each(row, function (alien) {
@@ -250,7 +251,6 @@ define(function (require) {
         move: function (row) {
             var alienRow = this.aliens[row], x;
             this.locked = true;
-            this.toggle();
             _.each(alienRow, function (alien) {
                 x = alien.x + this.stepSize * this.dir;
                 alien.attr({x: x});
@@ -322,9 +322,7 @@ define(function (require) {
         var cloud = Crafty.e('AlienCloud')
             .AlienCloud(rows, cols, ox, oy, ww, wh, ts);
         cloud.bind('ready', function () {
-            this.timeout(function () {
-                cloud.start();
-            }, 1000);
+            cloud.start();
         });
         Crafty.background('black');
     });
