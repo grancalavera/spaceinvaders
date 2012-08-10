@@ -111,7 +111,8 @@ define(function (require) {
             spawn: 0,
             _move: 500,
             _stepDown: 100,
-            _spawn: 30
+            _spawn: 30,
+            _factor: 1
         },
         stepSize: 0,
         dir: 1,
@@ -133,7 +134,7 @@ define(function (require) {
                 l: (ts / 2),
                 r: ww - ((ts / 2) * 2)
             };
-            this.setSpeed(5);
+            this.setSpeed(1, true);
             for (i = 0; i < rows; i += 1) {
                 this.aliens[i] = [];
             }
@@ -274,13 +275,21 @@ define(function (require) {
                     this.stepDown(row);
                 } else {
                     this.locked = false;
+                    this.increaseSpeed();
                 }
             }, this.speed.stepDown);
         },
-        setSpeed: function (factor) {
+        setSpeed: function (factor, initial) {
             this.speed.move = this.speed._move / factor;
-            this.speed.stepDown = this.speed._stepDown / factor;
-            this.speed.spawn = this.speed._spawn / factor;
+            this.speed._factor = factor;
+            if (initial) {
+                this.speed.stepDown = this.speed._stepDown / factor;
+                this.speed.spawn = this.speed._spawn / factor;
+            }
+        },
+        increaseSpeed: function () {
+            var factor = this.speed._factor + 0.7;
+            this.setSpeed(factor);
         }
     });
 
