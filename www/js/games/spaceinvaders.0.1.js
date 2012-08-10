@@ -109,7 +109,7 @@ define(function (require) {
         delay: 500,
         stepSize: 0,
         dir: 1,
-        locked: false;
+        locked: false,
         init: function () {
             return this;
         },
@@ -202,22 +202,22 @@ define(function (require) {
             return {l: l, r: r};
         },
         start: function () {
-            this.bind('EnterFrame', this.checkPosition));
+            this.bind('EnterFrame', this.checkPosition);
         },
         checkPosition: function () {
             var lastRow = this.aliens.length - 1;
-            if (locked) {
+            if (this.locked) {
                 return;
             }
             if (this.dir === 1) {
                 if (this.edges.r.x + this.stepSize < this.bounds.r) {
-                    this.move();
+                    this.move(lastRow);
                 } else {
                     this.stepDown(lastRow);
                 }
             } else {
                 if (this.edges.l.x - this.stepSize > this.bounds.l) {
-                    this.move();
+                    this.move(lastRow);
                 } else {
                     this.stepDown(lastRow);
                 }
@@ -225,9 +225,13 @@ define(function (require) {
         },
         move: function (row) {
             this.locked = true;
+            console.log('move');
+            console.log(this.aliens[row]);
         },
         stepDown: function (row) {
             this.locked = true;
+            console.log('stepDown');
+            console.log(this.aliens[row]);
         }
     });
 
