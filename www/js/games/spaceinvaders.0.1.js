@@ -97,7 +97,6 @@ define(function (require) {
             y: 0
         },
         ts: 0,
-        spawnDelay: 30,
         edges: {
             l: null,
             r: null
@@ -106,7 +105,14 @@ define(function (require) {
             l: 0,
             r: 0
         },
-        delay: 500,
+        speed: {
+            move: 0,
+            stepDown: 0,
+            spawn: 0,
+            _move: 500,
+            _stepDown: 100,
+            _spawn: 30
+        },
         stepSize: 0,
         dir: 1,
         locked: false,
@@ -122,11 +128,12 @@ define(function (require) {
             this.off.y = oy;
             this.ts = ts;
             this.aliens = [];
-            this.bounds = {
-                l: ts,
-                r: ww - ts * 2
-            };
             this.stepSize = this.ts / 4;
+            this.bounds = {
+                l: (ts / 2),
+                r: ww - ((ts / 2) * 2)
+            };
+            this.setSpeed(5);
             for (i = 0; i < rows; i += 1) {
                 this.aliens[i] = [];
             }
@@ -172,7 +179,7 @@ define(function (require) {
                 }
                 this.timeout(function () {
                     this.spawnAlien(row, col);
-                }, this.spawnDelay);
+                }, this.speed.spawn);
             } else {
                 this.trigger('ready');
             }
@@ -186,7 +193,8 @@ define(function (require) {
             var l = null, r  = null, i, curr, row;
             // Left.
             for (i = this.aliens.length - 1; i > 0; i -= 1) {
-                curr = this.aliens[i];
+                row = this.aliens[i];
+                curr = row[0];
                 if (_.isNull(l) || curr.col < l.col) {
                     l = curr;
                 }
@@ -205,33 +213,74 @@ define(function (require) {
             this.bind('EnterFrame', this.checkPosition);
         },
         checkPosition: function () {
+
             var lastRow = this.aliens.length - 1;
             if (this.locked) {
                 return;
             }
+
             if (this.dir === 1) {
                 if (this.edges.r.x + this.stepSize < this.bounds.r) {
                     this.move(lastRow);
                 } else {
+                    console.log('hit on the the right side');
+                    this.dir *= -1;
                     this.stepDown(lastRow);
                 }
             } else {
                 if (this.edges.l.x - this.stepSize > this.bounds.l) {
                     this.move(lastRow);
                 } else {
+                    console.log('hit on the the left side');
+                    this.dir *= -1;
                     this.stepDown(lastRow);
                 }
             }
         },
         move: function (row) {
+            var alienRow = this.aliens[row], x;
             this.locked = true;
-            console.log('move');
-            console.log(this.aliens[row]);
+
+            _.each(alienRow, function (alien) {
+                x = alien.x + this.stepSize * this.dir;
+                alien.attr({x: x});
+            }, this);
+
+            row -= 1;
+
+            this.timeout(function () {
+                if (row > -1) {
+                    this.move(row);
+                } else {
+                    this.locked = false;
+                }
+
+            }, this.speed.move);
         },
         stepDown: function (row) {
+            var alienRow = this.aliens[row], x, y;
             this.locked = true;
-            console.log('stepDown');
-            console.log(this.aliens[row]);
+
+            _.each(alienRow, function (alien) {
+                x = alien.x + this.stepSize * this.dir;
+                y = alien.y + this.ts;
+                alien.attr({x: x, y: y});
+            }, this);
+
+            row -= 1;
+
+            this.timeout(function () {
+                if (row > -1) {
+                    this.stepDown(row);
+                } else {
+                    this.locked = false;
+                }
+            }, this.speed.stepDown);
+        },
+        setSpeed: function (factor) {
+            this.speed.move = this.speed._move / factor;
+            this.speed.stepDown = this.speed._stepDown / factor;
+            this.speed.spawn = this.speed._spawn / factor;
         }
     });
 
