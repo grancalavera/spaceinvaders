@@ -240,14 +240,20 @@ define(function (require) {
                 }
             }
         },
+        toggle: function () {
+            _.each(this.aliens, function (row) {
+                _.each(row, function (alien) {
+                    alien.toggle();
+                });
+            });
+        },
         move: function (row) {
             var alienRow = this.aliens[row], x;
             this.locked = true;
-
+            this.toggle();
             _.each(alienRow, function (alien) {
                 x = alien.x + this.stepSize * this.dir;
                 alien.attr({x: x});
-                alien.toggle();
             }, this);
 
             row -= 1;
@@ -316,8 +322,9 @@ define(function (require) {
         var cloud = Crafty.e('AlienCloud')
             .AlienCloud(rows, cols, ox, oy, ww, wh, ts);
         cloud.bind('ready', function () {
-            console.log('cloud ready');
-            cloud.start();
+            this.timeout(function () {
+                cloud.start();
+            }, 1000);
         });
         Crafty.background('black');
     });
