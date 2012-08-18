@@ -21,7 +21,7 @@ define(function (require) {
         rows = 5,
         cols = 11,
         // Game sprite
-        sprite = 'img/enemies-and-hero.png';
+        sprite = '/img/enemies-and-hero.png';
 
     //--------------------------------------------------------------------------
     //
@@ -30,9 +30,6 @@ define(function (require) {
     //--------------------------------------------------------------------------
 
     Crafty.sprite(ts, sprite, {
-        alien1: [0, 0],
-        alien2: [0, 1],
-        alien3: [0, 2],
         hero:   [0, 3]
     });
 
@@ -109,7 +106,7 @@ define(function (require) {
             move: 0,
             stepDown: 0,
             spawn: 0,
-            _move: 500,
+            _move: 250,
             _stepDown: 100,
             _spawn: 30,
             _factor: 1
@@ -120,7 +117,7 @@ define(function (require) {
         init: function () {
             return this;
         },
-        AlienCloud: function (rows, cols, ox, oy, ww, wh, ts) {
+        AlienCloud: function (rows, cols, ox, oy, ww, wh, ts, spriteImg) {
             var i;
             this.rows = rows;
             this.cols = cols;
@@ -129,12 +126,17 @@ define(function (require) {
             this.off.y = oy;
             this.ts = ts;
             this.aliens = [];
-            this.stepSize = this.ts / 4;
+            this.stepSize = this.ts * 0.2;
             this.bounds = {
-                l: (ts / 2),
-                r: ww - ((ts / 2) * 2)
+                l: (ts * 0.75),
+                r: ww - ((ts * 0.75) * 2)
             };
             this.setSpeed(1, true);
+            Crafty.sprite(ts, spriteImg, {
+                alienTop:    [0, 0],
+                alienMiddle: [0, 1],
+                alienBottom: [0, 2]
+            });
             for (i = 0; i < rows; i += 1) {
                 this.aliens[i] = [];
             }
@@ -149,17 +151,17 @@ define(function (require) {
 
             switch (row) {
             case 0:
-                alien = 'alien2';
-                spriteRow = 1;
+                alien = 'alienTop';
+                spriteRow = 0;
                 break;
             case 1:
             case 2:
-                alien = 'alien1';
-                spriteRow = 0;
+                alien = 'alienMiddle';
+                spriteRow = 1;
                 break;
             case 3:
             case 4:
-                alien = 'alien3';
+                alien = 'alienBottom';
                 spriteRow = 2;
                 break;
             }
@@ -170,9 +172,6 @@ define(function (require) {
                     x: col * this.ts + this.off.x,
                     y: row * this.ts + this.off.y
                 });
-            if (row % 2) {
-                alien.toggle();
-            }
             this.aliens[row][col] = alien;
 
             if (this.getAliveCount() < this.cloudSize) {
@@ -240,20 +239,13 @@ define(function (require) {
                 }
             }
         },
-        // I think cloud toggles in turns, even, odd and so on.
-        toggle: function () {
-            _.each(this.aliens, function (row) {
-                _.each(row, function (alien) {
-                    alien.toggle();
-                });
-            });
-        },
         move: function (row) {
             var alienRow = this.aliens[row], x;
             this.locked = true;
             _.each(alienRow, function (alien) {
                 x = alien.x + this.stepSize * this.dir;
                 alien.attr({x: x});
+                alien.toggle();
             }, this);
 
             row -= 1;
@@ -320,7 +312,7 @@ define(function (require) {
 
     Crafty.scene('main', function () {
         var cloud = Crafty.e('AlienCloud')
-            .AlienCloud(rows, cols, ox, oy, ww, wh, ts);
+            .AlienCloud(rows, cols, ox, oy, ww, wh, ts, sprite);
         cloud.bind('ready', function () {
             cloud.start();
         });
