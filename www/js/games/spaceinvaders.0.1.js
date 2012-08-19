@@ -65,7 +65,7 @@ define(function (require) {
 
     Crafty.scene('main', function () {
         var cloud, hero, controls,
-            LEFT = -1, RIGHT = 1, STOP = 0;
+            LEFT = -1, RIGHT = 1, STOP = 0, CLASSIC = 'Classic', LASER = 'Laser';
         Crafty.background('black');
 
         function start() {
@@ -77,9 +77,13 @@ define(function (require) {
                 }).bind('right', function () {
                     hero.setDirection(RIGHT);
                 }).bind('fire', function () {
-                    console.log('fire');
+                    hero.fire();
                 }).bind('stop', function () {
                     hero.setDirection(STOP);
+                }).bind('weapon:classic', function () {
+                    hero.setWeapon(CLASSIC);
+                }).bind('weapon:laser', function () {
+                    hero.setWeapon(LASER);
                 });
         }
 

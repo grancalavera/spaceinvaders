@@ -37,6 +37,7 @@ define(function (require) {
         },
         kill: function () {
             this
+                .trigger('killed')
                 .animate('explode', 1)
                 .timeout(function () {
                     this.destroy();
@@ -76,13 +77,15 @@ define(function (require) {
             move: 0,
             stepDown: 0,
             spawn: 0,
-            _move: 250,
+            _move: 500,
             _stepDown: 100,
             _spawn: 30,
             _factor: 1
         },
         stepSize: 0,
         dir: 1,
+        // The place where the aliens go before getting disposed
+        limbo: [],
         locked: false,
         init: function () {
             return this;
@@ -106,13 +109,13 @@ define(function (require) {
                 this.aliens[i] = [];
             }
             this.bind('ready', function () {
-                this.edges = this.getEdges();
+                this.updateEdges();
             });
             this.spawnAlien(4, 0);
             return this;
         },
         spawnAlien: function (row, col) {
-            var alien, spriteRow;
+            var alien, spriteRow, self = this;
 
             switch (row) {
             case 0:
@@ -137,6 +140,9 @@ define(function (require) {
                     x: col * this.ts + this.off.x,
                     y: row * this.ts + this.off.y
                 });
+            alien.bind('killed', function (event) {
+                self.limbo.push(this);
+            });
             this.aliens[row][col] = alien;
 
             if (this.getAliveCount() < this.cloudSize) {
@@ -153,12 +159,30 @@ define(function (require) {
                 this.trigger('ready');
             }
         },
+        disposeAlien: function (alien) {
+            // The cloud orinal structure has changed, so we need to find each
+            // alien each time. Alien.row and Alien.col are only useful to
+            // determine the original position of the eacn alien when the cloud
+            // was created.
+            var i, j, row, len = this.aliens.length;
+            for (i = 0; i < len; i += 1) {
+                row = this.aliens[i];
+                j = _.indexOf(row, alien);
+                if (j > -1) {
+                    break;
+                }
+            }
+            row.splice(j, 1);
+            if (!row.length) {
+                this.aliens.splice(i, 1);
+            }
+        },
         getAliveCount: function () {
             return _.reduce(this.aliens, function (count, row) {
                 return count + row.length;
             }, 0);
         },
-        getEdges: function () {
+        updateEdges: function () {
             var l = null, r  = null, i, curr, row;
             // Left.
             for (i = this.aliens.length - 1; i > 0; i -= 1) {
@@ -176,14 +200,22 @@ define(function (require) {
                     r = curr;
                 }
             }
-            return {l: l, r: r};
+            this.edges = {l: l, r: r};
+            console.log(this.edges);
         },
         start: function () {
             this.bind('EnterFrame', this.checkPosition);
         },
         checkPosition: function () {
-
             var lastRow = this.aliens.length - 1;
+
+            // Dispose all killed aliens
+            if (this.limbo.length) {
+                while (this.limbo.length) {
+                    this.disposeAlien(this.limbo.pop());
+                }
+            }
+
             if (this.locked) {
                 return;
             }
@@ -219,6 +251,7 @@ define(function (require) {
                 if (row > -1) {
                     this.move(row);
                 } else {
+                    this.updateEdges();
                     this.locked = false;
                 }
 
@@ -240,6 +273,7 @@ define(function (require) {
                 if (row > -1) {
                     this.stepDown(row);
                 } else {
+                    this.updateEdges();
                     this.locked = false;
                     this.increaseSpeed();
                 }

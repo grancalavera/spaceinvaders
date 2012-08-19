@@ -44,6 +44,12 @@ define(function (require) {
                 case Crafty.keys.RIGHT_ARROW:
                     this.trigger('right');
                     break;
+                case Crafty.keys['1']:
+                    this.trigger('weapon:classic');
+                    break;
+                case Crafty.keys['2']:
+                    this.trigger('weapon:laser');
+                    break;
                 }
             }).bind('KeyUp', function (event) {
                 var key = event.key;
