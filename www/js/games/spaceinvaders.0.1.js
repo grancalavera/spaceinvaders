@@ -64,28 +64,33 @@ define(function (require) {
     });
 
     Crafty.scene('main', function () {
-        var cloud = Crafty.e('AlienCloud')
-            .AlienCloud(rows, cols, ox, oy, ww, wh, ts),
-            controls = Crafty.e('Controls'),
-            hero = Crafty.e('Hero').Hero(ww, wh, ts);
-
+        var cloud, hero, controls,
+            LEFT = -1, RIGHT = 1, STOP = 0;
         Crafty.background('black');
 
-        controls.bind('left', function () {
-            console.log('move left');
-        }).bind('right', function () {
-            console.log('move right');
-        }).bind('fire', function () {
-            console.log('fire');
-        });
-
-        cloud.bind('ready', function () {
+        function start() {
             hero.start();
+            cloud.start();
+            controls = Crafty.e('Controls')
+                .bind('left', function () {
+                    hero.setDirection(LEFT);
+                }).bind('right', function () {
+                    hero.setDirection(RIGHT);
+                }).bind('fire', function () {
+                    console.log('fire');
+                }).bind('stop', function () {
+                    hero.setDirection(STOP);
+                });
+        }
+
+        cloud = Crafty.e('AlienCloud').AlienCloud(rows, cols, ox, oy, ww, wh, ts);
+        cloud.bind('ready', function () {
+            hero = Crafty.e('Hero').Hero(ww, wh, ts);
+            hero.bind('ready', function () {
+                start();
+            });
         });
 
-        hero.bind('ready', function () {
-            cloud.start();
-        })
 
     });
 
