@@ -87,8 +87,7 @@ define(function (require) {
         init: function () {
             return this;
         },
-        AlienCloud: function (rows, cols, ox, oy, ww, wh, ts, spriteImg) {
-            console.log(arguments);
+        AlienCloud: function (rows, cols, ox, oy, ww, wh, ts) {
             var i;
             this.rows = rows;
             this.cols = cols;
@@ -103,11 +102,6 @@ define(function (require) {
                 r: ww - ((ts * 0.75) * 2)
             };
             this.setSpeed(1, true);
-            Crafty.sprite(ts, spriteImg, {
-                alienTop:    [0, 0],
-                alienMiddle: [0, 1],
-                alienBottom: [0, 2]
-            });
             for (i = 0; i < rows; i += 1) {
                 this.aliens[i] = [];
             }

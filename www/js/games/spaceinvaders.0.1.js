@@ -3,8 +3,6 @@ define(function (require) {
     var Crafty = require('crafty'),
         _ = require('underscore');
 
-    require('games/spaceinvaders/aliens');
-    require('games/spaceinvaders/controls');
 
     //--------------------------------------------------------------------------
     //
@@ -28,12 +26,25 @@ define(function (require) {
 
     //--------------------------------------------------------------------------
     //
+    // Game components
+    //
+    //--------------------------------------------------------------------------
+
+    require('games/spaceinvaders/aliens');
+    require('games/spaceinvaders/controls');
+    require('games/spaceinvaders/hero');
+
+    //--------------------------------------------------------------------------
+    //
     // Sprites
     //
     //--------------------------------------------------------------------------
 
     Crafty.sprite(ts, sprite, {
-        hero:   [0, 3]
+        alienTop:    [0, 0],
+        alienMiddle: [0, 1],
+        alienBottom: [0, 2],
+        hero:        [0, 3]
     });
 
     //--------------------------------------------------------------------------
@@ -54,8 +65,10 @@ define(function (require) {
 
     Crafty.scene('main', function () {
         var cloud = Crafty.e('AlienCloud')
-            .AlienCloud(rows, cols, ox, oy, ww, wh, ts, sprite),
-            controls = Crafty.e('Controls');
+            .AlienCloud(rows, cols, ox, oy, ww, wh, ts),
+            controls = Crafty.e('Controls'),
+            hero = Crafty.e('Hero').Hero(ww, wh, ts);
+
         Crafty.background('black');
 
         controls.bind('left', function () {
@@ -67,8 +80,12 @@ define(function (require) {
         });
 
         cloud.bind('ready', function () {
-            cloud.start();
+            hero.start();
         });
+
+        hero.bind('ready', function () {
+            cloud.start();
+        })
 
     });
 
