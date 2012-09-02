@@ -84,17 +84,18 @@ define(function (require) {
         },
         stepSize: 0,
         dir: 1,
-        // The place where the aliens go before getting disposed
-        limbo: [],
         locked: false,
+        graveyard: [],
         init: function () {
             return this;
         },
         AlienCloud: function (rows, cols, ox, oy, ww, wh, ts) {
             var i;
+
             this.rows = rows;
             this.cols = cols;
-            this.cloudSize = rows * cols;
+
+            this.cloudSize = this.rows * this.cols;
             this.off.x = ox;
             this.off.y = oy;
             this.ts = ts;
@@ -105,13 +106,13 @@ define(function (require) {
                 r: ww - ((ts * 0.75) * 2)
             };
             this.setSpeed(1, true);
-            for (i = 0; i < rows; i += 1) {
+            for (i = 0; i < this.rows; i += 1) {
                 this.aliens[i] = [];
             }
             this.bind('ready', function () {
                 this.updateEdges();
             });
-            this.spawnAlien(4, 0);
+            this.spawnAlien(this.rows - 1, 0);
             return this;
         },
         spawnAlien: function (row, col) {
@@ -139,10 +140,10 @@ define(function (require) {
                 .attr({
                     x: col * this.ts + this.off.x,
                     y: row * this.ts + this.off.y
+                })
+                .bind('killed', function () {
+                    self.graveyard.push(this);
                 });
-            alien.bind('killed', function (event) {
-                self.limbo.push(this);
-            });
             this.aliens[row][col] = alien;
 
             if (this.getAliveCount() < this.cloudSize) {
@@ -159,8 +160,13 @@ define(function (require) {
                 this.trigger('ready');
             }
         },
+        cleanGraveyard: function () {
+            while (this.graveyard.length) {
+                this.disposeAlien(this.graveyard.pop());
+            }
+        },
         disposeAlien: function (alien) {
-            // The cloud orinal structure has changed, so we need to find each
+            // The cloud original structure has changed, so we need to find each
             // alien each time. Alien.row and Alien.col are only useful to
             // determine the original position of the eacn alien when the cloud
             // was created.
@@ -184,39 +190,51 @@ define(function (require) {
         },
         updateEdges: function () {
             var l = null, r  = null, i, curr, row;
-            // Left.
-            for (i = this.aliens.length - 1; i > 0; i -= 1) {
+            for (i = this.aliens.length - 1; i >= 0; i -= 1) {
                 row = this.aliens[i];
+                // Left.
                 curr = row[0];
                 if (_.isNull(l) || curr.col < l.col) {
                     l = curr;
                 }
-            }
-            // Right.
-            for (i = this.aliens.length - 1; i > 0; i -= 1) {
-                row = this.aliens[i];
+                // Right.
                 curr = row[row.length - 1];
                 if (_.isNull(r) || curr.col > r.col) {
                     r = curr;
                 }
             }
             this.edges = {l: l, r: r};
-            console.log(this.edges);
         },
-        start: function () {
+        killRow: function () {
+            var row = this.aliens.length - 1, disposable = [];
+            _.each(this.aliens[row], function (alien) {
+                alien.kill();
+            }, this);
+        },
+        killColumn: function () {
+            console.log('Kill alien column');
+        },
+        start: function (speed) {
+            if (_.isNumber(speed)) {
+                this.setSpeed(speed);
+            }
             this.bind('EnterFrame', this.checkPosition);
+        },
+        stop: function () {
+            this.unbind('EnterFrame', this.checkPosition);
         },
         checkPosition: function () {
             var lastRow = this.aliens.length - 1;
 
-            // Dispose all killed aliens
-            if (this.limbo.length) {
-                while (this.limbo.length) {
-                    this.disposeAlien(this.limbo.pop());
-                }
-            }
+            this.cleanGraveyard();
 
             if (this.locked) {
+                return;
+            }
+
+
+            if (this.getAliveCount() === 0) {
+                this.stop();
                 return;
             }
 

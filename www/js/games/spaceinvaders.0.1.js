@@ -69,20 +69,31 @@ define(function (require) {
         Crafty.background('black');
 
         function start() {
-            hero.start();
             cloud.start();
+            hero.start();
             controls = Crafty.e('Controls')
+                .bind('pause', function () {
+                    Crafty.pause();
+                })
+                .bind('killRow', function () {
+                    cloud.killRow();
+                })
                 .bind('left', function () {
                     hero.setDirection(LEFT);
-                }).bind('right', function () {
+                })
+                .bind('right', function () {
                     hero.setDirection(RIGHT);
-                }).bind('fire', function () {
+                })
+                .bind('fire', function () {
                     hero.fire();
-                }).bind('stop', function () {
+                })
+                .bind('stop', function () {
                     hero.setDirection(STOP);
-                }).bind('weapon:classic', function () {
+                })
+                .bind('weapon:classic', function () {
                     hero.setWeapon(CLASSIC);
-                }).bind('weapon:laser', function () {
+                })
+                .bind('weapon:laser', function () {
                     hero.setWeapon(LASER);
                 });
         }

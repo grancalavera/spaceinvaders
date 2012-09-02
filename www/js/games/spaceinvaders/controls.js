@@ -50,6 +50,13 @@ define(function (require) {
                 case Crafty.keys['2']:
                     this.trigger('weapon:laser');
                     break;
+                case Crafty.keys.P:
+                    this.trigger('pause');
+                    break;
+                // Debugging:
+                case Crafty.keys.R:
+                    this.trigger('killRow');
+                    break;
                 }
             }).bind('KeyUp', function (event) {
                 var key = event.key;
