@@ -57,11 +57,15 @@ define(function (require) {
 
     Crafty.c('LaserWeapon', {
         speed: 16,
+        kills: {},
         init: function () {
             this.requires('Weapon');
         },
         Weapon: function (x, y) {
+            var self = this;
             this.onHit('Alien', function (hits) {
+                // The only reason why this works is because an `Alien` will not
+                // allow to be killed more than once.
                 hits[0].obj.kill();
             });
             return this.attr({x: x, y: y - 34, h: 32});
@@ -101,12 +105,18 @@ define(function (require) {
             return this;
         },
         start: function () {
+            var left = -2, right = this.ww - 26;
             this.bind('EnterFrame', function () {
-                var x = this.x;
+                var x = this.x, xTo;
+
                 if (this.direction === 1 || this.direction === -1) {
-                    x = x + (this.speed * this.direction);
-                    this.attr({x: x});
+                    xTo = x + (this.speed * this.direction);
                 }
+
+                if ((this.direction === 1 && xTo < right) || (this.direction === -1 && xTo > left)) {
+                    this.attr({x: xTo});
+                }
+
             });
 
             return this;

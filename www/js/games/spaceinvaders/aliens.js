@@ -22,6 +22,7 @@ define(function (require) {
         // The row and column where the Alien was originally spawned.
         row: 0,
         col: 0,
+        alive: true,
         init: function () {
             this.requires('2D, SpriteAnimation, Collision, Canvas');
             return this;
@@ -36,6 +37,10 @@ define(function (require) {
             return this;
         },
         kill: function () {
+            if (!this.alive) {
+                return this;
+            }
+            this.alive = false;
             this
                 .trigger('killed')
                 .animate('explode', 1)
@@ -164,6 +169,7 @@ define(function (require) {
             while (this.graveyard.length) {
                 this.disposeAlien(this.graveyard.pop());
             }
+            this.updateEdges();
         },
         disposeAlien: function (alien) {
             // The cloud original structure has changed, so we need to find each
