@@ -95,6 +95,9 @@ define(function (require) {
                 })
                 .bind('weapon:laser', function () {
                     hero.setWeapon(LASER);
+                })
+                .bind('alienFire', function () {
+                    cloud.fire();
                 });
         }
 

@@ -57,6 +57,9 @@ define(function (require) {
                 case Crafty.keys.R:
                     this.trigger('killRow');
                     break;
+                case Crafty.keys.F:
+                    this.trigger('alienFire');
+                    break;
                 }
             }).bind('KeyUp', function (event) {
                 var key = event.key;

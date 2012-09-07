@@ -53,6 +53,9 @@ define(function (require) {
             this.animate(this.animation, 1);
             this.animation = this.animation === 'flip' ? 'flop' : 'flip';
             return this;
+        },
+        fire: function () {
+            this.kill();
         }
     });
 
@@ -64,6 +67,7 @@ define(function (require) {
 
     Crafty.c('AlienCloud', {
         aliens: [],
+        fireRow: [],
         cloudSize: 0,
         off: {
             x: 0,
@@ -150,6 +154,9 @@ define(function (require) {
                     self.graveyard.push(this);
                 });
             this.aliens[row][col] = alien;
+            if (row === 4) {
+                this.fireRow.push(alien);
+            }
 
             if (this.getAliveCount() < this.cloudSize) {
                 if (col < this.cols - 1) {
@@ -188,6 +195,9 @@ define(function (require) {
             if (!row.length) {
                 this.aliens.splice(i, 1);
             }
+        },
+        removeAlienFromRow: function (alien, row) {
+
         },
         getAliveCount: function () {
             return _.reduce(this.aliens, function (count, row) {
@@ -314,6 +324,12 @@ define(function (require) {
         increaseSpeed: function () {
             var factor = this.speed._factor + 0.7;
             this.setSpeed(factor);
+        },
+        fire: function () {
+            var l, alien;
+            l = this.fireRow.length;
+            alien = this.fireRow[Crafty.math.randomInt(0, l - 1)];
+            alien.fire();
         }
     });
 });
