@@ -1,5 +1,6 @@
+window.foo = 'bar';
 /**
- * RowMajorArray
+ * `ArrayUtils`
  *
  * An array extension to allow 2D arrays to be stored in a linear array.
  *
@@ -22,6 +23,7 @@ define(function (require) {
     // Helpers
     //
     //--------------------------------------------------------------------------
+
     /**
      * isFalsy
      *
@@ -63,38 +65,73 @@ define(function (require) {
 
     ArrayUtils = {};
 
+    //--------------------------------------------------------------------------
+    //
+    // OneD
+    //
+    //--------------------------------------------------------------------------
+    /**
+     * OneD
+     *
+     * Creates an instance of a 1 dimensional array wrapper.
+     */
     var OneD = ArrayUtils.OneD = function (source) {
-        this.source = source || [];
-        _.each(Object.getOwnPropertyNames(Array.prototype), function (name) {
-            var method = Array.prototype[name];
-            if (typeof method === 'function') {
-                this[name] = function () {
-                    return method.apply(this.source, arguments);
-                };
-            }
-        }, this);
+        this.setSource(source || []);
     };
 
     _.extend(OneD.prototype, {
         source: null,
+        setSource: function (array) {
+            this.source = array;
+            _.each(Object.getOwnPropertyNames(Array.prototype), function (name) {
+                var method = Array.prototype[name];
+                if (typeof method === 'function') {
+                    this[name] = function () {
+                        return method.apply(this.source, arguments);
+                    };
+                }
+            }, this);
+        },
         length: function () {
             return this.source.length;
         },
         /**
-         * at
+         * `at`
          *
-         * Returns the element at the given index
+         * Returns the element at the given index.
          */
         at: function (index) {
             return this.source[index];
         },
         /**
+         * `toArray`
+         *
+         * Returns an Array representation of this object.
+         */
+        toArray: function () {
+            return this.source.slice(0);
+        },
+        /**
+         * `addAt`
+         *
+         * Adds or replaces an object at the given index of the `source` Array.
+         * Every possible value is allowed, including undefined, NaN, and null.
+         * Returns the newly added object.
+         */
+        addAt: function (index, object) {
+            return (this.source[index] = object);
+        },
+        /**
          * deleteAt
          *
-         * Deletes an element at an index from the `source` array.
+         * Deletes an element at an index from the `source` array and returns
+         * the deleted element. The element at the deleted index will take a value
+         * of 'undefined'.
          */
-        deleteAt: function () {
-
+        deleteAt: function (index) {
+            var el = this.source[index];
+            delete this.source[index];
+            return el;
         },
         /**
          * `countTruly`
@@ -169,36 +206,100 @@ define(function (require) {
 
     //--------------------------------------------------------------------------
     //
-    // BasicUtils
+    // TwoD
+    //
+    //--------------------------------------------------------------------------
+    /**
+     * `TwoD`
+     *
+     * Base prototype for `RowMajor` and `ColumnMajor` 2 dimensional array wrappers.
+     */
+    var TwoD = function (rows, columns, source) {
+        if (_.isUndefined(rows) || _.isNull(rows)) {
+            throw new ReferenceError('The `rows` parameter is required.');
+        }
+        if (_.isUndefined(columns) || _.isNull(columns)) {
+            throw new ReferenceError('The `columns` parameter is required.');
+        }
+        if (!_.isNumber(rows)) {
+            throw new TypeError('`rows` must be a Number.');
+        }
+        if (!_.isNumber(columns)) {
+            throw new TypeError('`columns` must be a Number.');
+        }
+        if (rows <= 0) {
+            throw new Error('`rows` must be greater than 0.');
+        }
+        if (columns <= 0) {
+            throw new Error('`columns` must be greater than 0.');
+        }
+        OneD.prototype.constructor.call(this, source);
+        this.rows = rows;
+        this.columns = columns;
+    };
+
+    _.extend(TwoD.prototype, OneD.prototype, {
+        rows: 0,
+        columns: 0
+    });
+
+    //--------------------------------------------------------------------------
+    //
+    // RowMajor
     //
     //--------------------------------------------------------------------------
 
-    var TwoD = {
-        rows: 0,
-        columns: 0,
-        init: function (rows, columns) {
-            this.rows = rows;
-            this.columns = columns;
-        }
+    var RowMajor = ArrayUtils.RowMajor = function (rows, columns, source) {
+        TwoD.prototype.constructor.apply(this, arguments);
     };
 
-    var RowMajor = {
+    _.extend(RowMajor.prototype, TwoD.prototype, {
+        /**
+         * `getRow`
+         *
+         * Returns a new OneD array wrapper instance with the requested row.
+         */
         getRow: function (row) {
-            return getConsecutive(this, row, this.columns);
+            return new OneD(getConsecutive(this.source, row, this.columns));
         },
+        /**
+         * `getColumn`
+         *
+         * Returns a new OneD array wrapper instance with the requested column.
+         */
         getColumn: function (column) {
-            return getNonConsecutive(this, column, this.rows, this.columns);
+            return new OneD(getNonConsecutive(this.source, column, this.rows, this.columns));
         }
+    });
+
+    //--------------------------------------------------------------------------
+    //
+    // ColumnMajor
+    //
+    //--------------------------------------------------------------------------
+
+    var ColumnMajor = ArrayUtils.ColumnMajor = function (rows, columns, source) {
+        TwoD.prototype.constructor.apply(this, arguments);
     };
 
-    var ColumnMajor = {
+    _.extend(ColumnMajor.prototype, TwoD.prototype, {
+        /**
+         * `getRow`
+         *
+         * Returns a new OneD array wrapper instance with the requested row.
+         */
         getRow: function (row) {
-            return getNonConsecutive(this, row, this.columns, this.rows);
+            return new OneD(getNonConsecutive(this.source, row, this.columns, this.rows));
         },
+        /**
+         * `getColumn`
+         *
+         * Returns a new OneD array wrapper instance with the requested column.
+         */
         getColumn: function (column) {
-            return getConsecutive(this, column, this.rows);
+            return new OneD(getConsecutive(this.source, column, this.rows));
         }
-    };
+    });
 
     //--------------------------------------------------------------------------
     //
@@ -207,23 +308,5 @@ define(function (require) {
     //--------------------------------------------------------------------------
 
     return ArrayUtils;
-    // return {
-    //     basicUtils: function (source) {
-    //         var array = source || [];
-    //         _.extend(array, BasicUtils);
-    //         return array;
-    //     },
-    //     rowMajor: function (rows, columns, source) {
-    //         var array = source || [];
-    //         _.extend(array, BasicUtils, TwoD, RowMajor);
-    //         array.init(rows, columns);
-    //         return array;
-    //     },
-    //     columnMajor: function (rows, columns, source) {
-    //         var array = source || [];
-    //         _.extend(array, BasicUtils, TwoD, ColumnMajor);
-    //         array.init(rows, columns);
-    //         return array;
-    //     }
-    // };
+
 });
