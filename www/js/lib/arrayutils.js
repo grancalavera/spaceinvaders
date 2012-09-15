@@ -1,4 +1,3 @@
-window.foo = 'bar';
 /**
  * `ArrayUtils`
  *
