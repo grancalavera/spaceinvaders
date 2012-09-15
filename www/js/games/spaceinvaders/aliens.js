@@ -103,7 +103,6 @@ define(function (require) {
 
             this.rows = rows;
             this.cols = cols;
-
             this.cloudSize = this.rows * this.cols;
             this.off.x = ox;
             this.off.y = oy;
@@ -121,57 +120,61 @@ define(function (require) {
             this.bind('ready', function () {
                 this.updateEdges();
             });
-            this.spawnAlien(this.rows - 1, 0);
+            // this.spawnAlien(this.rows - 1, 0);
+            this.spawnNextAlien();
             return this;
         },
-        spawnAlien: function (row, col) {
-            var alien, spriteRow, self = this;
+        spawnNextAlien: function () {
 
-            switch (row) {
-            case 0:
-                alien = 'alienTop';
-                spriteRow = 0;
-                break;
-            case 1:
-            case 2:
-                alien = 'alienMiddle';
-                spriteRow = 1;
-                break;
-            case 3:
-            case 4:
-                alien = 'alienBottom';
-                spriteRow = 2;
-                break;
-            }
-
-            alien = Crafty.e('Alien, ' + alien)
-                .Alien(row, col, spriteRow)
-                .attr({
-                    x: col * this.ts + this.off.x,
-                    y: row * this.ts + this.off.y
-                })
-                .bind('killed', function () {
-                    self.graveyard.push(this);
-                });
-            this.aliens[row][col] = alien;
-            if (row === 4) {
-                this.fireRow.push(alien);
-            }
-
-            if (this.getAliveCount() < this.cloudSize) {
-                if (col < this.cols - 1) {
-                    col += 1;
-                } else {
-                    col = 0;
-                    row -= 1;
-                }
-                this.timeout(function () {
-                    this.spawnAlien(row, col);
-                }, this.speed.spawn);
-            } else {
-                this.trigger('ready');
-            }
         },
+        // spawnAlien: function (row, col) {
+        //     var alien, spriteRow, self = this;
+
+        //     switch (row) {
+        //     case 0:
+        //         alien = 'alienTop';
+        //         spriteRow = 0;
+        //         break;
+        //     case 1:
+        //     case 2:
+        //         alien = 'alienMiddle';
+        //         spriteRow = 1;
+        //         break;
+        //     case 3:
+        //     case 4:
+        //         alien = 'alienBottom';
+        //         spriteRow = 2;
+        //         break;
+        //     }
+
+        //     alien = Crafty.e('Alien, ' + alien)
+        //         .Alien(row, col, spriteRow)
+        //         .attr({
+        //             x: col * this.ts + this.off.x,
+        //             y: row * this.ts + this.off.y
+        //         })
+        //         .bind('killed', function () {
+        //             self.graveyard.push(this);
+        //         });
+        //     this.aliens[row][col] = alien;
+        //     if (row === 4) {
+        //         this.fireRow.push(alien);
+        //     }
+
+        //     if (this.getAliveCount() < this.cloudSize) {
+        //         if (col < this.cols - 1) {
+        //             col += 1;
+        //         } else {
+        //             col = 0;
+        //             row -= 1;
+        //         }
+        //         this.timeout(function () {
+        //             this.spawnAlien(row, col);
+        //         }, this.speed.spawn);
+        //     } else {
+        //         this.trigger('ready');
+        //     }
+        // },
         cleanGraveyard: function () {
             while (this.graveyard.length) {
                 this.disposeAlien(this.graveyard.pop());
@@ -195,9 +198,6 @@ define(function (require) {
             if (!row.length) {
                 this.aliens.splice(i, 1);
             }
-        },
-        removeAlienFromRow: function (alien, row) {
-
         },
         getAliveCount: function () {
             return _.reduce(this.aliens, function (count, row) {

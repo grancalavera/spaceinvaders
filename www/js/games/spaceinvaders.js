@@ -1,7 +1,8 @@
 define(function (require) {
     'use strict';
     var Crafty = require('crafty'),
-        _ = require('underscore');
+        _ = require('underscore'),
+        ArrayUtils = require('arrayutils');
 
 
     //--------------------------------------------------------------------------
@@ -120,6 +121,10 @@ define(function (require) {
 
     Crafty.init(ww, wh);
     Crafty.canvas.init();
-    Crafty.scene('loading');
-
+    // Crafty.scene('loading');
+    var a = ArrayUtils.rowMajorArray(5, 11);
+    console.log(a.countTruly());
+    delete a[0];
+    console.log(a.countTruly());
+    console.log(a.getRandomIndex());
 });

@@ -26,12 +26,12 @@ define(function (require) {
 
     Crafty.c('Controls', {
         init: function () {
-            return this.initWithKeybard();
+            return this.initWithKeyboard();
         },
         Controls: function () {
             return this;
         },
-        initWithKeybard: function () {
+        initWithKeyboard: function () {
             this.requires('Keyboard');
             this.bind('KeyDown', function (event) {
                 switch (event.key) {
