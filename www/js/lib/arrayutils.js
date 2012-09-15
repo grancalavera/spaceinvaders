@@ -15,15 +15,13 @@ define(function (require) {
     //
     //--------------------------------------------------------------------------
 
-    var _ = require('underscore');
+    var _ = require('underscore'), ArrayUtils;
 
     //--------------------------------------------------------------------------
     //
     // Helpers
     //
     //--------------------------------------------------------------------------
-
-
     /**
      * isFalsy
      *
@@ -59,24 +57,121 @@ define(function (require) {
 
     //--------------------------------------------------------------------------
     //
-    // BasicUtils
+    // ArrayUtils
     //
     //--------------------------------------------------------------------------
 
-    var BasicUtils = {
-        countTruly: function () {
-            return count(this);
-        },
-        countFalsy: function () {
-            return count(this, true);
-        },
-        getRandomIndex: function () {
-            return Math.floor(Math.random() * this.length);
-        },
-        getRandomElement: function () {
-            return this[this.getRandomIndex()];
-        }
+    ArrayUtils = {};
+
+    var OneD = ArrayUtils.OneD = function (source) {
+        this.source = source || [];
+        _.each(Object.getOwnPropertyNames(Array.prototype), function (name) {
+            var method = Array.prototype[name];
+            if (typeof method === 'function') {
+                this[name] = function () {
+                    return method.apply(this.source, arguments);
+                };
+            }
+        }, this);
     };
+
+    _.extend(OneD.prototype, {
+        source: null,
+        length: function () {
+            return this.source.length;
+        },
+        /**
+         * at
+         *
+         * Returns the element at the given index
+         */
+        at: function (index) {
+            return this.source[index];
+        },
+        /**
+         * deleteAt
+         *
+         * Deletes an element at an index from the `source` array.
+         */
+        deleteAt: function () {
+
+        },
+        /**
+         * `countTruly`
+         *
+         * Counts all the elements in the `source` Array that contain a truly value.
+         * A value of 0 (zero) will be counted as truly.
+         */
+        countTruly: function () {
+            return count(this.source);
+        },
+        /**
+         * `countFalsy`
+         *
+         * Counts all the elements in the `source` Array that contain a falsy value.
+         * A value of 0 (zero) will be counted as truly.
+         */
+        countFalsy: function () {
+            return count(this.source, true);
+        },
+        /**
+         * `getRandomIndex`
+         *
+         * Returns a random index within the length of the `source` Array. The index
+         * can point to an element with a falsy value.
+         */
+        getRandomIndex: function () {
+            return Math.floor(Math.random() * this.source.length);
+        },
+        /**
+         * `getRandomElement`
+         *
+         * Returns a random element from the `source` Array. The element's value
+         * can be a falsy value.
+         */
+        getRandomElement: function () {
+            return this.source[this.getRandomIndex()];
+        },
+        /**
+         * firstTruly
+         *
+         * Returns the first truly element from the `source` Array.
+         * A value of 0 (zero) will be counted as truly.
+         */
+        firstTruly: function () {
+            var el = null, lenght = this.source.length, i = 0;
+            for (i; i < lenght; i += 1) {
+                el = this.source[i];
+                if (!isFalsy(el)) {
+                    break;
+                }
+            }
+            return el;
+        },
+        /**
+         * lastTruly
+         *
+         * Returns the last truly element from the `source` Array.
+         * A value of 0 (zero) will be counted as truly.
+         */
+        lastTruly: function () {
+            var el = null, i = this.source.length - 1;
+            for (i; i > -1; i -= 1) {
+                el = this.source[i];
+                if (!isFalsy(el)) {
+                    break;
+                }
+            }
+            return el;
+        }
+
+    });
+
+    //--------------------------------------------------------------------------
+    //
+    // BasicUtils
+    //
+    //--------------------------------------------------------------------------
 
     var TwoD = {
         rows: 0,
@@ -111,23 +206,24 @@ define(function (require) {
     //
     //--------------------------------------------------------------------------
 
-    return {
-        basicUtils: function (source) {
-            var array = source || [];
-            _.extend(array, BasicUtils);
-            return array;
-        },
-        rowMajor: function (rows, columns, source) {
-            var array = source || [];
-            _.extend(array, BasicUtils, TwoD, RowMajor);
-            array.init(rows, columns);
-            return array;
-        },
-        columnMajor: function (rows, columns, source) {
-            var array = source || [];
-            _.extend(array, BasicUtils, TwoD, ColumnMajor);
-            array.init(rows, columns);
-            return array;
-        }
-    };
+    return ArrayUtils;
+    // return {
+    //     basicUtils: function (source) {
+    //         var array = source || [];
+    //         _.extend(array, BasicUtils);
+    //         return array;
+    //     },
+    //     rowMajor: function (rows, columns, source) {
+    //         var array = source || [];
+    //         _.extend(array, BasicUtils, TwoD, RowMajor);
+    //         array.init(rows, columns);
+    //         return array;
+    //     },
+    //     columnMajor: function (rows, columns, source) {
+    //         var array = source || [];
+    //         _.extend(array, BasicUtils, TwoD, ColumnMajor);
+    //         array.init(rows, columns);
+    //         return array;
+    //     }
+    // };
 });
