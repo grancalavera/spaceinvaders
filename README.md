@@ -18,7 +18,7 @@ This is a clone of [Space Invaders](http://en.wikipedia.org/wiki/Space_Invaders)
 * [NodeJS and NPM](http://nodejs.org/)
 * [Volo](https://github.com/volojs/volo)
 
-## Project structore
+## Project structure
 
 * www/ - the web assets for the project
     * index.html - the entry point into the app.
