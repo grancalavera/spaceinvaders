@@ -8,7 +8,8 @@
 define(function (require) {
     'use strict';
     var Crafty      = require('crafty'),
-        _           = require('underscore');
+        _           = require('underscore'),
+        ArrayUtils  = require('arrayutils');
 
     //----------------------------------
     //
@@ -66,7 +67,7 @@ define(function (require) {
     //----------------------------------
 
     Crafty.c('AlienCloud', {
-        aliens: [],
+        aliens: null,
         fireRow: [],
         cloudSize: 0,
         off: {
@@ -107,7 +108,7 @@ define(function (require) {
             this.off.x = ox;
             this.off.y = oy;
             this.ts = ts;
-            this.aliens = [];
+            this.aliens = new ArrayUtils.RowMajor(this.rows, this.cols);
             this.stepSize = this.ts * 0.2;
             this.bounds = {
                 l: (ts * 0.75),
@@ -120,109 +121,86 @@ define(function (require) {
             this.bind('ready', function () {
                 this.updateEdges();
             });
-            // this.spawnAlien(this.rows - 1, 0);
-            this.spawnNextAlien();
+            this.spawnAlien(this.rows - 1, 0);
             return this;
         },
-        spawnNextAlien: function () {
+        spawnAlien: function (row, col) {
+            var alien, spriteRow, self = this;
 
-        },
-        // spawnAlien: function (row, col) {
-        //     var alien, spriteRow, self = this;
-
-        //     switch (row) {
-        //     case 0:
-        //         alien = 'alienTop';
-        //         spriteRow = 0;
-        //         break;
-        //     case 1:
-        //     case 2:
-        //         alien = 'alienMiddle';
-        //         spriteRow = 1;
-        //         break;
-        //     case 3:
-        //     case 4:
-        //         alien = 'alienBottom';
-        //         spriteRow = 2;
-        //         break;
-        //     }
-
-        //     alien = Crafty.e('Alien, ' + alien)
-        //         .Alien(row, col, spriteRow)
-        //         .attr({
-        //             x: col * this.ts + this.off.x,
-        //             y: row * this.ts + this.off.y
-        //         })
-        //         .bind('killed', function () {
-        //             self.graveyard.push(this);
-        //         });
-        //     this.aliens[row][col] = alien;
-        //     if (row === 4) {
-        //         this.fireRow.push(alien);
-        //     }
-
-        //     if (this.getAliveCount() < this.cloudSize) {
-        //         if (col < this.cols - 1) {
-        //             col += 1;
-        //         } else {
-        //             col = 0;
-        //             row -= 1;
-        //         }
-        //         this.timeout(function () {
-        //             this.spawnAlien(row, col);
-        //         }, this.speed.spawn);
-        //     } else {
-        //         this.trigger('ready');
-        //     }
-        // },
-        cleanGraveyard: function () {
-            while (this.graveyard.length) {
-                this.disposeAlien(this.graveyard.pop());
+            switch (row) {
+            case 0:
+                alien = 'alienTop';
+                spriteRow = 0;
+                break;
+            case 1:
+            case 2:
+                alien = 'alienMiddle';
+                spriteRow = 1;
+                break;
+            case 3:
+            case 4:
+                alien = 'alienBottom';
+                spriteRow = 2;
+                break;
             }
-            this.updateEdges();
-        },
-        disposeAlien: function (alien) {
-            // The cloud original structure has changed, so we need to find each
-            // alien each time. Alien.row and Alien.col are only useful to
-            // determine the original position of the eacn alien when the cloud
-            // was created.
-            var i, j, row, len = this.aliens.length;
-            for (i = 0; i < len; i += 1) {
-                row = this.aliens[i];
-                j = _.indexOf(row, alien);
-                if (j > -1) {
-                    break;
+
+            alien = Crafty.e('Alien, ' + alien)
+                .Alien(row, col, spriteRow)
+                .attr({
+                    x: col * this.ts + this.off.x,
+                    y: row * this.ts + this.off.y
+                })
+                .bind('killed', function () {
+                    self.killAlien(this);
+                });
+            this.aliens.addAt(row, col, alien);
+
+            if (this.getAliveCount() < this.cloudSize) {
+                if (col < this.cols - 1) {
+                    col += 1;
+                } else {
+                    col = 0;
+                    row -= 1;
                 }
-            }
-            row.splice(j, 1);
-            if (!row.length) {
-                this.aliens.splice(i, 1);
+                this.timeout(function () {
+                    this.spawnAlien(row, col);
+                }, this.speed.spawn);
+            } else {
+                this.trigger('ready');
             }
         },
         getAliveCount: function () {
-            return _.reduce(this.aliens, function (count, row) {
-                return count + row.length;
-            }, 0);
+            return this.aliens.countTruly();
         },
         updateEdges: function () {
-            var l = null, r  = null, i, curr, row;
-            for (i = this.aliens.length - 1; i >= 0; i -= 1) {
-                row = this.aliens[i];
-                // Left.
-                curr = row[0];
-                if (_.isNull(l) || curr.col < l.col) {
-                    l = curr;
-                }
-                // Right.
-                curr = row[row.length - 1];
-                if (_.isNull(r) || curr.col > r.col) {
-                    r = curr;
+            var row, i, left = null, right = null, current = null;
+
+            for (i = this.rows - 1; i > -1; i -= 1) {
+
+                row = this.aliens.getRow(i);
+                if (row.countTruly()) {
+
+                    // Left
+                    current = row.firstTruly();
+                    if (_.isNull(left) || current.col < left.col) {
+                        left = current;
+                    }
+
+                    // Right
+                    current = row.lastTruly();
+                    if (_.isNull(right) || current.col > right.col) {
+                        right = current;
+                    }
                 }
             }
-            this.edges = {l: l, r: r};
+            this.edges = {l: left, r: right};
+        },
+        killAlien: function (alien) {
+            this.aliens.deleteAt(alien.row, alien.col);
+            this.updateEdges();
         },
         killRow: function () {
-            var row = this.aliens.length - 1, disposable = [];
+            var row = this.aliens.length - 1;
             _.each(this.aliens[row], function (alien) {
                 alien.kill();
             }, this);
@@ -240,9 +218,7 @@ define(function (require) {
             this.unbind('EnterFrame', this.checkPosition);
         },
         checkPosition: function () {
-            var lastRow = this.aliens.length - 1;
-
-            this.cleanGraveyard();
+            var lastRow = this.getLastAliveRowIndex();
 
             if (this.locked) {
                 return;
@@ -270,8 +246,17 @@ define(function (require) {
                 }
             }
         },
+        getLastAliveRowIndex: function () {
+            var i;
+            for (i = this.rows - 1; i > -1; i -= 1) {
+                if (this.aliens.getRow(i).countTruly()) {
+                    break;
+                }
+            }
+            return i;
+        },
         move: function (row) {
-            var alienRow = this.aliens[row], x;
+            var alienRow = this.aliens.getRow(row).toArray(), x;
             this.locked = true;
             _.each(alienRow, function (alien) {
                 x = alien.x + this.stepSize * this.dir;
@@ -292,7 +277,7 @@ define(function (require) {
             }, this.speed.move);
         },
         stepDown: function (row) {
-            var alienRow = this.aliens[row], x, y;
+            var alienRow = this.aliens.getRow(row).toArray(), x, y;
             this.locked = true;
 
             _.each(alienRow, function (alien) {
@@ -325,11 +310,16 @@ define(function (require) {
             var factor = this.speed._factor + 0.7;
             this.setSpeed(factor);
         },
+        getShooters: function () {
+            var shooters = [];
+            
+        },
         fire: function () {
-            var l, alien;
-            l = this.fireRow.length;
-            alien = this.fireRow[Crafty.math.randomInt(0, l - 1)];
-            alien.fire();
+            console.log('fire');
+            // var l, alien;
+            // l = this.fireRow.length;
+            // alien = this.fireRow[Crafty.math.randomInt(0, l - 1)];
+            // alien.fire();
         }
     });
 });
