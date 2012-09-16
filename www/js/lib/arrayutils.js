@@ -239,7 +239,42 @@ define(function (require) {
 
     _.extend(TwoD.prototype, OneD.prototype, {
         rows: 0,
-        columns: 0
+        columns: 0,
+        /**
+         * `getOffset`
+         *
+         * Noop method to be implemented by extending prototypes.
+         */
+        getOffset: function (row, column) {
+            return 0;
+        },
+        /**
+         * `at`
+         *
+         * Returns the element at a given row / column.
+         */
+        at: function (row, column) {
+            return this.source[this.getOffset(row, column)];
+        },
+        /**
+         * `addAt`
+         *
+         * Inserts / replaces an element at the given row / column.
+         */
+        addAt: function (row, column, object) {
+            return (this.source[this.getOffset(row, column)] = object);
+        },
+        /**
+         * `deleteAt`
+         *
+         * Deletes an element at the given row / column, and returs the deleted
+         * element.
+         */
+        deleteAt: function (row, column) {
+            var el = this.at(row, column);
+            delete this.source[this.getOffset(row, column)];
+            return el;
+        }
     });
 
     //--------------------------------------------------------------------------
@@ -268,6 +303,15 @@ define(function (require) {
          */
         getColumn: function (column) {
             return new OneD(getNonConsecutive(this.source, column, this.rows, this.columns));
+        },
+        /**
+         * `getOffset`
+         *
+         * Given a row and column, returns the index of such element in the
+         * linear source array
+         */
+        getOffset: function (row, column) {
+            return row * this.columns + column;
         }
     });
 
@@ -297,6 +341,15 @@ define(function (require) {
          */
         getColumn: function (column) {
             return new OneD(getConsecutive(this.source, column, this.rows));
+        },
+        /**
+         * `getOffset`
+         *
+         * Given a row and column, returns the index of such element in the
+         * linear source array
+         */
+        getOffset: function (row, column) {
+            return column * this.rows + row;
         }
     });
 

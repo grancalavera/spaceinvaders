@@ -146,6 +146,21 @@ define(function (require) {
         deepEqual(rowMajorInstance.getColumn(2).toArray(), [3, 8, 13, 18], 'getColumn(2)');
         deepEqual(rowMajorInstance.getColumn(3).toArray(), [4, 9, 14, 19], 'getColumn(3)');
         deepEqual(rowMajorInstance.getColumn(4).toArray(), [5, 10, 15, 20], 'getColumn(4)');
+
+        // Offets
+        equal(rowMajorInstance.getOffset(0, 1), 1, 'getOffset(0, 1)');
+        equal(rowMajorInstance.getOffset(1, 3), 8, 'getOffset(1, 3)');
+        equal(rowMajorInstance.getOffset(3, 4), 19, 'getOffset(3, 4)');
+
+        // at, addAt, deleteAt
+        equal(rowMajorInstance.at(1, 3), 9, 'at(1, 3)');
+        equal(rowMajorInstance.deleteAt(1, 3), 9, 'deleteAt(1, 3)');
+        ok(_.isUndefined(rowMajorInstance.at(1, 3)), 'deleteAt(1, 3)');
+        equal(rowMajorInstance.addAt(1, 3, 9), 9, 'addAt(1, 3, 9)');
+        rowMajorInstance.deleteAt(1, 3);
+        rowMajorInstance.addAt(1, 3, 9);
+        equal(rowMajorInstance.at(1, 3), 9, 'addAt(1, 3, 9)');
+
     });
 
     test('ColumnMajor', function () {
@@ -171,5 +186,20 @@ define(function (require) {
         deepEqual(columnMajorInstance.getColumn(2).toArray(), [9, 10, 11, 12], 'getColumn(2)');
         deepEqual(columnMajorInstance.getColumn(3).toArray(), [13, 14, 15, 16], 'getColumn(3)');
         deepEqual(columnMajorInstance.getColumn(4).toArray(), [17, 18, 19, 20], 'getColumn(4)');
+
+        // Offsets
+        equal(columnMajorInstance.getOffset(0, 1), 4, 'getOffset(0, 1)');
+        equal(columnMajorInstance.getOffset(1, 3), 13, 'getOffset(1, 3)');
+        equal(columnMajorInstance.getOffset(3, 4), 19, 'getOffset(3, 4)');
+
+        // at, addAt, deleteAt
+        equal(columnMajorInstance.at(1, 3), 14, 'at(1, 3)');
+        equal(columnMajorInstance.deleteAt(1, 3), 14, 'deleteAt(1, 3)');
+        ok(_.isUndefined(columnMajorInstance.at(1, 3)), 'deleteAt(1, 3)');
+        equal(columnMajorInstance.addAt(1, 3, 14), 14, 'addAt(1, 3, 14)');
+        columnMajorInstance.deleteAt(1, 3);
+        columnMajorInstance.addAt(1, 3, 14);
+        equal(columnMajorInstance.at(1, 3), 14, 'addAt(1, 3, 14)');
+
     });
 });
