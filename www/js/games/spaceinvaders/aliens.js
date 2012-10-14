@@ -170,7 +170,7 @@ define(function (require) {
             }
         },
         getAliveCount: function () {
-            return this.aliens.countTruly();
+            return this.aliens.countTruthy();
         },
         updateEdges: function () {
             var row, i, left = null, right = null, current = null;
@@ -178,16 +178,16 @@ define(function (require) {
             for (i = this.rows - 1; i > -1; i -= 1) {
 
                 row = this.aliens.getRow(i);
-                if (row.countTruly()) {
+                if (row.countTruthy()) {
 
                     // Left
-                    current = row.firstTruly();
+                    current = row.firstTruthy();
                     if (_.isNull(left) || current.col < left.col) {
                         left = current;
                     }
 
                     // Right
-                    current = row.lastTruly();
+                    current = row.lastTruthy();
                     if (_.isNull(right) || current.col > right.col) {
                         right = current;
                     }
@@ -249,7 +249,7 @@ define(function (require) {
         getLastAliveRowIndex: function () {
             var i;
             for (i = this.rows - 1; i > -1; i -= 1) {
-                if (this.aliens.getRow(i).countTruly()) {
+                if (this.aliens.getRow(i).countTruthy()) {
                     break;
                 }
             }
@@ -312,7 +312,6 @@ define(function (require) {
         },
         getShooters: function () {
             var shooters = [];
-            
         },
         fire: function () {
             console.log('fire');

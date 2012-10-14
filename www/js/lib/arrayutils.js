@@ -24,19 +24,19 @@ define(function (require) {
     //--------------------------------------------------------------------------
 
     /**
-     * isFalsy
+     * isFalsey
      *
-     * All falsy values but 0.
+     * All falsey values but 0.
      */
-    function isFalsy(value) {
+    function isFalsey(value) {
         return _.isUndefined(value) || _.isNull(value) || _.isNaN(value);
     }
 
-    function count(array, countFalsy) {
+    function count(array, countFalsey) {
         var condition;
         return _.reduce(array, function (memo, item) {
-            condition = isFalsy(item);
-            if (countFalsy) {
+            condition = isFalsey(item);
+            if (countFalsey) {
                 condition = !condition;
             }
             return memo + (condition ? 0 : 1);
@@ -133,28 +133,28 @@ define(function (require) {
             return el;
         },
         /**
-         * `countTruly`
+         * `countTruthy`
          *
-         * Counts all the elements in the `source` Array that contain a truly value.
-         * A value of 0 (zero) will be counted as truly.
+         * Counts all the elements in the `source` Array that contain a truthy value.
+         * A value of 0 (zero) will be counted as truthy.
          */
-        countTruly: function () {
+        countTruthy: function () {
             return count(this.source);
         },
         /**
-         * `countFalsy`
+         * `countFalsey`
          *
-         * Counts all the elements in the `source` Array that contain a falsy value.
-         * A value of 0 (zero) will be counted as truly.
+         * Counts all the elements in the `source` Array that contain a falsey value.
+         * A value of 0 (zero) will be counted as truthy.
          */
-        countFalsy: function () {
+        countFalsey: function () {
             return count(this.source, true);
         },
         /**
          * `getRandomIndex`
          *
          * Returns a random index within the length of the `source` Array. The index
-         * can point to an element with a falsy value.
+         * can point to an element with a falsey value.
          */
         getRandomIndex: function () {
             return Math.floor(Math.random() * this.source.length);
@@ -163,38 +163,38 @@ define(function (require) {
          * `getRandomElement`
          *
          * Returns a random element from the `source` Array. The element's value
-         * can be a falsy value.
+         * can be a falsey value.
          */
         getRandomElement: function () {
             return this.source[this.getRandomIndex()];
         },
         /**
-         * firstTruly
+         * firstTruthy
          *
-         * Returns the first truly element from the `source` Array.
-         * A value of 0 (zero) will be counted as truly.
+         * Returns the first truthy element from the `source` Array.
+         * A value of 0 (zero) will be counted as truthy.
          */
-        firstTruly: function () {
+        firstTruthy: function () {
             var el = null, lenght = this.source.length, i = 0;
             for (i; i < lenght; i += 1) {
                 el = this.source[i];
-                if (!isFalsy(el)) {
+                if (!isFalsey(el)) {
                     break;
                 }
             }
             return el;
         },
         /**
-         * lastTruly
+         * lastTruthy
          *
-         * Returns the last truly element from the `source` Array.
-         * A value of 0 (zero) will be counted as truly.
+         * Returns the last truthy element from the `source` Array.
+         * A value of 0 (zero) will be counted as truthy.
          */
-        lastTruly: function () {
+        lastTruthy: function () {
             var el = null, i = this.source.length - 1;
             for (i; i > -1; i -= 1) {
                 el = this.source[i];
-                if (!isFalsy(el)) {
+                if (!isFalsey(el)) {
                     break;
                 }
             }
@@ -274,6 +274,30 @@ define(function (require) {
             var el = this.at(row, column);
             delete this.source[this.getOffset(row, column)];
             return el;
+        },
+        /**
+         * getRows
+         *
+         * Returns a sigle `OneD` instance with each row in its own `OneD` instance.
+         */
+        getRows: function () {
+            var rows = [], i;
+            for (i = 0; i < this.rows; i += 1) {
+                rows.push(new OneD(this.getRow(i)));
+            }
+            return new OneD(rows);
+        },
+        /**
+         * getColumns
+         *
+         * Returns a single `OneD` instance with each column in its onw `OneD` instance.
+         */
+        getColumns: function () {
+            var columns = [], i;
+            for (i = 0; i < this.columns; i += 1) {
+                columns.push(new OneD(this.getColumn(i)));
+            }
+            return new OneD(columns);
         }
     });
 

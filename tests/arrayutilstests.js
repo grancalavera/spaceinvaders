@@ -24,7 +24,7 @@ define(function (require) {
 
     module('OneD', {
         setup: function () {
-            source = [0, 1, 2, 3, 4, null, NaN, undefined]; // length = 8, truly = 5, falsy = 3
+            source = [0, 1, 2, 3, 4, null, NaN, undefined]; // length = 8, truthy = 5, falsey = 3
         }
     });
 
@@ -63,18 +63,18 @@ define(function (require) {
         oneDInstance.shift();
 
         // Count
-        equal(oneDInstance.countTruly(), 5, 'countTruly()');
-        equal(oneDInstance.countFalsy(), 3, 'countFalsy()');
+        equal(oneDInstance.countTruthy(), 5, 'countTruthy()');
+        equal(oneDInstance.countFalsey(), 3, 'countFalsey()');
 
         // Random
         var index = oneDInstance.getRandomIndex();
         ok((index >= 0), 'getRandomIndex()');
         ok((index < oneDInstance.length()), 'getRandomIndex()');
 
-        // Trulys
+        // Truthys
         oneDInstance.unshift(null);
-        equal(oneDInstance.firstTruly(), 0, 'firstTruly()');
-        equal(oneDInstance.lastTruly(), 4, 'lastTruly()');
+        equal(oneDInstance.firstTruthy(), 0, 'firstTruthy()');
+        equal(oneDInstance.lastTruthy(), 4, 'lastTruthy()');
         oneDInstance.shift();
 
     });
@@ -161,6 +161,13 @@ define(function (require) {
         rowMajorInstance.addAt(1, 3, 9);
         equal(rowMajorInstance.at(1, 3), 9, 'addAt(1, 3, 9)');
 
+        // getRows, getColumns
+        var rows = rowMajorInstance.getRows().toArray();
+        deepEqual(rows[0].toArray(), [1, 2, 3, 4, 5], 'getRows()');
+        deepEqual(rows[1].toArray(), [6, 7, 8, 9, 10], 'getRows()');
+        deepEqual(rows[2].toArray(), [11, 12, 13, 14, 15], 'getRows()');
+        deepEqual(rows[3].toArray(), [16, 17, 18, 19, 20], 'getRows()');
+
     });
 
     test('ColumnMajor', function () {
@@ -200,6 +207,7 @@ define(function (require) {
         columnMajorInstance.deleteAt(1, 3);
         columnMajorInstance.addAt(1, 3, 14);
         equal(columnMajorInstance.at(1, 3), 14, 'addAt(1, 3, 14)');
+
 
     });
 });
