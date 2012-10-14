@@ -161,12 +161,20 @@ define(function (require) {
         rowMajorInstance.addAt(1, 3, 9);
         equal(rowMajorInstance.at(1, 3), 9, 'addAt(1, 3, 9)');
 
-        // getRows, getColumns
+        // getRows
         var rows = rowMajorInstance.getRows().toArray();
         deepEqual(rows[0].toArray(), [1, 2, 3, 4, 5], 'getRows()');
         deepEqual(rows[1].toArray(), [6, 7, 8, 9, 10], 'getRows()');
         deepEqual(rows[2].toArray(), [11, 12, 13, 14, 15], 'getRows()');
         deepEqual(rows[3].toArray(), [16, 17, 18, 19, 20], 'getRows()');
+
+        // getColumns
+        var columns =  rowMajorInstance.getColumns().toArray();
+        deepEqual(columns[0].toArray(), [1, 6, 11, 16], 'getColumns()');
+        deepEqual(columns[1].toArray(), [2, 7, 12, 17], 'getColumns()');
+        deepEqual(columns[2].toArray(), [3, 8, 13, 18], 'getColumns()');
+        deepEqual(columns[3].toArray(), [4, 9, 14, 19], 'getColumns()');
+        deepEqual(columns[4].toArray(), [5, 10, 15, 20], 'getColumns()');
 
     });
 
@@ -208,6 +216,19 @@ define(function (require) {
         columnMajorInstance.addAt(1, 3, 14);
         equal(columnMajorInstance.at(1, 3), 14, 'addAt(1, 3, 14)');
 
+        // getRows
+        var rows = columnMajorInstance.getRows().toArray();
+        deepEqual(rows[0].toArray(), [1, 5, 9, 13, 17], 'getRows()');
+        deepEqual(rows[1].toArray(), [2, 6, 10, 14, 18], 'getRows()');
+        deepEqual(rows[2].toArray(), [3, 7, 11, 15, 19], 'getRows()');
+        deepEqual(rows[3].toArray(), [4, 8, 12, 16, 20], 'getRows()');
 
+        // getColumns
+        var columns = columnMajorInstance.getColumns().toArray();
+        deepEqual(columns[0].toArray(), [1, 2, 3, 4], 'getColumns()');
+        deepEqual(columns[1].toArray(), [5, 6, 7, 8], 'getColumns()');
+        deepEqual(columns[2].toArray(), [9, 10, 11, 12], 'getColumns()');
+        deepEqual(columns[3].toArray(), [13, 14, 15, 16], 'getColumns()');
+        deepEqual(columns[4].toArray(), [17, 18, 19, 20], 'getColumns()');
     });
 });
