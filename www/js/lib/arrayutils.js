@@ -283,7 +283,7 @@ define(function (require) {
         getRows: function () {
             var rows = [], i;
             for (i = 0; i < this.rows; i += 1) {
-                rows.push(new OneD(this.getRow(i)));
+                rows.push(this.getRow(i));
             }
             return new OneD(rows);
         },
@@ -295,7 +295,7 @@ define(function (require) {
         getColumns: function () {
             var columns = [], i;
             for (i = 0; i < this.columns; i += 1) {
-                columns.push(new OneD(this.getColumn(i)));
+                columns.push(this.getColumn(i));
             }
             return new OneD(columns);
         }
