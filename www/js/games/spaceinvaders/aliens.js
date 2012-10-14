@@ -311,10 +311,17 @@ define(function (require) {
             this.setSpeed(factor);
         },
         getShooters: function () {
-            var shooters = [];
+            var shooters = _.map(this.aliens.getColumns().toArray(), function (col) {
+                return col.lastTruthy();
+            });
+            // Empty columns will return an undefined element :(
+            shooters = _.without(shooters, undefined);
+            console.log(shooters);
+            return shooters;
         },
         fire: function () {
             console.log('fire');
+            console.log(this.getShooters().length);
             // var l, alien;
             // l = this.fireRow.length;
             // alien = this.fireRow[Crafty.math.randomInt(0, l - 1)];
