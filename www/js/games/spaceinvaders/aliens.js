@@ -13,6 +13,36 @@ define(function (require) {
 
     //----------------------------------
     //
+    // AlienBullet
+    //
+    //----------------------------------
+
+    Crafty.c('AlienBullet', {
+        bottom: 0,
+        speed: 6,
+        init: function () {
+            return this.requires('2D, Canvas, Collision, Color')
+                .color('rgb(255, 255, 255)')
+                .attr({w: 2, h: 16})
+                .bind('EnterFrame', function () {
+                    if (this.y < this.bottom) {
+                        this.y += this.speed;
+                    } else {
+                        this.destroy();
+                        this.trigger('destroy');
+                    }
+                });
+        },
+        AlienBullet: function (x, y, wh) {
+            this.bottom = wh;
+            return this.onHit('Hero', function (hits) {
+                // hits[0].obj.kill();
+            }).attr({x: x, y: y});
+        }
+    });
+
+    //----------------------------------
+    //
     // Alien
     //
     //----------------------------------
@@ -24,13 +54,15 @@ define(function (require) {
         row: 0,
         col: 0,
         alive: true,
+        wh: 0,
         init: function () {
             this.requires('2D, SpriteAnimation, Collision, Canvas');
             return this;
         },
-        Alien: function (row, col, spriteRow) {
+        Alien: function (row, col, spriteRow, wh) {
             this.row = row;
             this.col = col;
+            this.wh = wh;
             this
                 .animate('explode', 2, spriteRow, 2)
                 .animate('flip', 0, spriteRow, 1)
@@ -56,7 +88,11 @@ define(function (require) {
             return this;
         },
         fire: function () {
-            this.kill();
+            var x, y;
+            x = this.x + 15;
+            y = this.y + 32;
+            Crafty.e('AlienBullet').AlienBullet(x, y, this.wh);
+            return this;
         }
     });
 
@@ -95,7 +131,7 @@ define(function (require) {
         stepSize: 0,
         dir: 1,
         locked: false,
-        graveyard: [],
+        wh: 0,
         init: function () {
             return this;
         },
@@ -104,6 +140,7 @@ define(function (require) {
 
             this.rows = rows;
             this.cols = cols;
+            this.wh = wh;
             this.cloudSize = this.rows * this.cols;
             this.off.x = ox;
             this.off.y = oy;
@@ -145,7 +182,7 @@ define(function (require) {
             }
 
             alien = Crafty.e('Alien, ' + alien)
-                .Alien(row, col, spriteRow)
+                .Alien(row, col, spriteRow, this.wh)
                 .attr({
                     x: col * this.ts + this.off.x,
                     y: row * this.ts + this.off.y
@@ -199,25 +236,16 @@ define(function (require) {
             this.aliens.deleteAt(alien.row, alien.col);
             this.updateEdges();
         },
-        killRow: function () {
-            var row = this.aliens.length - 1;
-            _.each(this.aliens[row], function (alien) {
-                alien.kill();
-            }, this);
-        },
-        killColumn: function () {
-            console.log('Kill alien column');
-        },
         start: function (speed) {
             if (_.isNumber(speed)) {
                 this.setSpeed(speed);
             }
-            this.bind('EnterFrame', this.checkPosition);
+            this.bind('EnterFrame', this.loop);
         },
         stop: function () {
-            this.unbind('EnterFrame', this.checkPosition);
+            this.unbind('EnterFrame', this.loop);
         },
-        checkPosition: function () {
+        loop: function () {
             var lastRow = this.getLastAliveRowIndex();
 
             if (this.locked) {
@@ -310,22 +338,16 @@ define(function (require) {
             var factor = this.speed._factor + 0.7;
             this.setSpeed(factor);
         },
-        getShooters: function () {
+        getShooter: function () {
             var shooters = _.map(this.aliens.getColumns().toArray(), function (col) {
                 return col.lastTruthy();
             });
             // Empty columns will return an undefined element :(
             shooters = _.without(shooters, undefined);
-            console.log(shooters);
-            return shooters;
+            return new ArrayUtils.OneD(shooters).getRandomElement();
         },
         fire: function () {
-            console.log('fire');
-            console.log(this.getShooters().length);
-            // var l, alien;
-            // l = this.fireRow.length;
-            // alien = this.fireRow[Crafty.math.randomInt(0, l - 1)];
-            // alien.fire();
+            this.getShooter().fire();
         }
     });
 });

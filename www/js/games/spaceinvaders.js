@@ -74,9 +74,6 @@ define(function (require) {
                 .bind('pause', function () {
                     Crafty.pause();
                 })
-                .bind('killRow', function () {
-                    cloud.killRow();
-                })
                 .bind('left', function () {
                     hero.setDirection(LEFT);
                 })
