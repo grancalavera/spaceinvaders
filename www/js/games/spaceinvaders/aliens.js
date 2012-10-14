@@ -132,12 +132,12 @@ define(function (require) {
         dir: 1,
         locked: false,
         wh: 0,
+        nextFire: 0,
         init: function () {
             return this;
         },
         AlienCloud: function (rows, cols, ox, oy, ww, wh, ts) {
             var i;
-
             this.rows = rows;
             this.cols = cols;
             this.wh = wh;
@@ -147,6 +147,7 @@ define(function (require) {
             this.ts = ts;
             this.aliens = new ArrayUtils.RowMajor(this.rows, this.cols);
             this.stepSize = this.ts * 0.2;
+            this.scheduleNextFire();
             this.bounds = {
                 l: (ts * 0.75),
                 r: ww - ((ts * 0.75) * 2)
@@ -240,18 +241,22 @@ define(function (require) {
             if (_.isNumber(speed)) {
                 this.setSpeed(speed);
             }
-            this.bind('EnterFrame', this.loop);
+            this.bind('EnterFrame', this.update);
         },
         stop: function () {
-            this.unbind('EnterFrame', this.loop);
+            this.unbind('EnterFrame', this.update);
         },
-        loop: function () {
+        update: function () {
             var lastRow = this.getLastAliveRowIndex();
+
+            if (new Date().getTime() >= this.nextFire) {
+                this.fire();
+                this.scheduleNextFire();
+            }
 
             if (this.locked) {
                 return;
             }
-
 
             if (this.getAliveCount() === 0) {
                 this.stop();
@@ -348,6 +353,9 @@ define(function (require) {
         },
         fire: function () {
             this.getShooter().fire();
+        },
+        scheduleNextFire: function () {
+            this.nextFire = new Date().getTime() + Crafty.math.randomInt(1000, 3000);
         }
     });
 });
